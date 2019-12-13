@@ -4,6 +4,10 @@ if [ -z ${PLUGIN_NAMESPACE} ]; then
   PLUGIN_NAMESPACE="default"
 fi
 
+if [ -z ${PLUGIN_APP_TYPE} ]; then
+  PLUGIN_APP_TYPE="deployment"
+fi
+
 if [ -z ${PLUGIN_KUBERNETES_USER} ]; then
   PLUGIN_KUBERNETES_USER="default"
 fi
@@ -33,16 +37,16 @@ kubectl config set-context default --cluster=default --user=${PLUGIN_KUBERNETES_
 kubectl config use-context default
 
 # kubectl version
-IFS=',' read -r -a DEPLOYMENTS <<< "${PLUGIN_DEPLOYMENT}"
+IFS=',' read -r -a APPS <<< "${PLUGIN_APP}"
 IFS=',' read -r -a CONTAINERS <<< "${PLUGIN_CONTAINER}"
-for DEPLOY in ${DEPLOYMENTS[@]}; do
+for DEPLOY in ${APPS[@]}; do
   echo Deploying to $KUBERNETES_SERVER
   for CONTAINER in ${CONTAINERS[@]}; do
     if [[ ${PLUGIN_FORCE} == "true" ]]; then
-      kubectl -n ${PLUGIN_NAMESPACE} set image deployment/${DEPLOY} \
+      kubectl -n ${PLUGIN_NAMESPACE} set image ${PLUGIN_APP_TYPE}/${DEPLOY} \
         ${CONTAINER}=${PLUGIN_REPO}:${PLUGIN_TAG}FORCE
     fi
-    kubectl -n ${PLUGIN_NAMESPACE} set image deployment/${DEPLOY} \
+    kubectl -n ${PLUGIN_NAMESPACE} set image ${PLUGIN_APP_TYPE}/${DEPLOY} \
       ${CONTAINER}=${PLUGIN_REPO}:${PLUGIN_TAG} --record
   done
 done
